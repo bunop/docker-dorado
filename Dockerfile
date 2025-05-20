@@ -1,35 +1,60 @@
-# Usa immagine base ufficiale CUDA 11.5 con Ubuntu 20.04
-FROM nvidia/cuda:11.5.2-devel-ubuntu20.04
+#
+# VERSION 0.1.0
+# DOCKER-VERSION  28.1.1
+# AUTHOR:         Paolo Cozzi <paolo.cozzi@ibba.cnr.it>
+# DESCRIPTION:    A docker image with dorado installed
+# TO_BUILD:       docker build --rm -t bunop/dorado .
+# TO_RUN:         docker run --rm -ti bunop/dorado bash
+# TO_TAG:         docker tag bunop/dorado:la1e0t bunop/dorado:0.1.0
+#
 
+# This is an attempt to dockerize dorado as described in:
+# https://github.com/nanoporetech/dorado/blob/release-v0.9/DEV.md
+
+# start from the nvidia/cuda base image
+FROM nvidia/cuda:11.8.0-devel-ubuntu22.04
+
+# MAINTAINER is deprecated. Use LABEL instead
+LABEL maintainer="paolo.cozzi@ibba.cnr.it"
+
+# Set environment variable to disable interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Installazione dipendenze di sistema base
+# Install the required dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    cmake \
-    git \
-    python3 \
-    python3-pip \
-    pkg-config \
-    libssl-dev \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+        curl \
+        git \
+        ca-certificates \
+        build-essential \
+        libhdf5-dev \
+        libssl-dev \
+        autoconf \
+        automake \
+        python3-venv && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Aggiorna pip e installa dipendenze python (modifica in base a requirements dorado)
-RUN python3 -m pip install --upgrade pip setuptools wheel
+WORKDIR /root
 
-# Clona dorado (scegli branch/tag se vuoi), e prepara build
-RUN git clone https://github.com/nanoporetech/dorado.git /opt/dorado
+# install cmake using pip and venv
+RUN python3 -m venv venv && \
+    . venv/bin/activate && \
+    pip install --upgrade pip && \
+    pip install "cmake>=3.25"
 
-WORKDIR /opt/dorado
+# Cloning dorado and choosing the v0.9.6 release
+RUN git clone https://github.com/nanoporetech/dorado.git /root/dorado && \
+    cd /root/dorado && \
+    git checkout v0.9.6 && \
+    git submodule update --init --recursive
 
-# Crea cartella build, configura e compila
-RUN mkdir build && cd build && \
-    cmake -DCMAKE_BUILD_TYPE=Release -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda .. && \
-    make -j$(nproc)
+WORKDIR /root/dorado
 
-# (opzionale) aggiungi dorado path a PATH
-ENV PATH="/opt/dorado/build/bin:${PATH}"
+# Creating the build directory
+RUN . /root/venv/bin/activate && \
+    cmake -S . -B cmake-build && \
+    cmake --build cmake-build --config Release -j$(nproc) && \
+    cmake --install cmake-build --prefix /opt
 
-# Imposta entrypoint o command
+# setting default command
 CMD ["/bin/bash"]
