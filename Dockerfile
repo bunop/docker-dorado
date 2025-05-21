@@ -3,9 +3,9 @@
 # DOCKER-VERSION  28.1.1
 # AUTHOR:         Paolo Cozzi <paolo.cozzi@ibba.cnr.it>
 # DESCRIPTION:    A docker image with dorado installed
-# TO_BUILD:       docker build --rm -t bunop/dorado .
-# TO_RUN:         docker run --rm -ti bunop/dorado bash
-# TO_TAG:         docker tag bunop/dorado:la1e0t bunop/dorado:0.1.0
+# TO_BUILD:       docker build --rm --build-arg BUILD_JOBS=4 -t bunop/dorado .
+# TO_RUN:         docker run --rm --gpus all -ti bunop/dorado bash
+# TO_TAG:         docker tag bunop/dorado:latest bunop/dorado:0.1.0
 #
 
 # This is an attempt to dockerize dorado as described in:
@@ -50,11 +50,15 @@ RUN git clone https://github.com/nanoporetech/dorado.git /root/dorado && \
 
 WORKDIR /root/dorado
 
+# determining the number of jobs to use for building
+ARG BUILD_JOBS
+ENV BUILD_JOBS=${BUILD_JOBS:-$(nproc)}
+
 # Creating the build directory
 RUN . /root/venv/bin/activate && \
     cmake -S . -B cmake-build && \
-    cmake --build cmake-build --config Release -j$(nproc) && \
-    cmake --install cmake-build --prefix /opt
+    cmake --build cmake-build --config Release -j${BUILD_JOBS} && \
+    cmake --install cmake-build --prefix /opt/dorado
 
 # setting default command
-CMD ["/bin/bash"]
+CMD ["/opt/dorado/bin/dorado", "--help"]
