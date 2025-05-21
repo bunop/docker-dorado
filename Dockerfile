@@ -76,5 +76,13 @@ ENV DEBIAN_FRONTEND=noninteractive
 # copy the application from build stage
 COPY --from=build /opt/dorado /opt/dorado
 
+# install pip and pod5
+RUN apt-get update && apt-get install -y --no-install-recommends python3-pip && \
+    pip3 install --no-cache-dir pod5 && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# link dorado to /usr/local/bin
+RUN ln -s /opt/dorado/bin/dorado /usr/local/bin/dorado
+
 # setting default command
-CMD ["/opt/dorado/bin/dorado", "--help"]
+CMD ["dorado", "--help"]
