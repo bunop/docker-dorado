@@ -1,5 +1,5 @@
 #
-# VERSION 0.1.0
+# VERSION 0.2.0
 # DOCKER-VERSION  28.1.1
 # AUTHOR:         Paolo Cozzi <paolo.cozzi@ibba.cnr.it>
 # DESCRIPTION:    A docker image with dorado installed
@@ -11,8 +11,12 @@
 # This is an attempt to dockerize dorado as described in:
 # https://github.com/nanoporetech/dorado/blob/release-v0.9/DEV.md
 
+# This Dockerfile is based on the official NVIDIA CUDA image
+# https://hub.docker.com/r/nvidia/cuda
+ARG CUDA_VERSION=11.8.0
+
 # start from the nvidia/cuda base image
-FROM nvidia/cuda:11.8.0-devel-ubuntu22.04
+FROM nvidia/cuda:${CUDA_VERSION}-devel-ubuntu22.04 AS build
 
 # MAINTAINER is deprecated. Use LABEL instead
 LABEL maintainer="paolo.cozzi@ibba.cnr.it"
@@ -59,6 +63,18 @@ RUN . /root/venv/bin/activate && \
     cmake -S . -B cmake-build && \
     cmake --build cmake-build --config Release -j${BUILD_JOBS} && \
     cmake --install cmake-build --prefix /opt/dorado
+
+# 2nd stage build
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-ubuntu22.04
+
+# MAINTAINER is deprecated. Use LABEL instead
+LABEL maintainer="paolo.cozzi@ibba.cnr.it"
+
+# Set environment variable to disable interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# copy the application from build stage
+COPY --from=build /opt/dorado /opt/dorado
 
 # setting default command
 CMD ["/opt/dorado/bin/dorado", "--help"]
