@@ -40,7 +40,7 @@ WORKDIR /root
 RUN python3 -m venv venv && \
     . venv/bin/activate && \
     pip install --upgrade pip && \
-    pip install "cmake>=3.25"
+    pip install "cmake==3.25"
 
 # Cloning dorado and choosing the v0.9.6 release
 RUN git clone https://github.com/nanoporetech/dorado.git /root/dorado && \
