@@ -38,6 +38,7 @@ jobs:
           build-args: |
             CUDA_VERSION=${{ matrix.cuda_version }}
             DORADO_VERSION=${{ matrix.dorado_version }}
+          cache-from: type=registry,ref=bunop/dorado:${{ matrix.dorado_version }}-cuda${{ matrix.cuda_version }}
 
   tag-latest:
     needs: build
