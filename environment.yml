@@ -1,0 +1,12 @@
+name: dorado-env
+channels:
+  - nanoporetech
+  - conda-forge
+  - bioconda
+dependencies:
+  - python==3.10
+  - samtools>=1.18
+  - minimap2==2.28
+  - pip:
+    - pod5==0.3.2
+    - numpy<2.0.0

@@ -1,11 +1,11 @@
 #
-# VERSION 0.2.0
+# VERSION 0.2.1
 # DOCKER-VERSION  28.1.1
 # AUTHOR:         Paolo Cozzi <paolo.cozzi@ibba.cnr.it>
 # DESCRIPTION:    A docker image with dorado installed
 # TO_BUILD:       docker build --rm --build-arg BUILD_JOBS=4 -t bunop/dorado .
 # TO_RUN:         docker run --rm --gpus all -ti bunop/dorado bash
-# TO_TAG:         docker tag bunop/dorado:latest bunop/dorado:0.1.0
+# TO_TAG:         docker tag bunop/dorado:latest bunop/dorado:v0.9.6-cuda11.8.0
 #
 
 # This is an attempt to dockerize dorado as described in:
@@ -94,13 +94,35 @@ ENV DEBIAN_FRONTEND=noninteractive
 # copy the application from build stage
 COPY --from=build /opt/dorado /opt/dorado
 
-# install pip and pod5
-RUN apt-get update && apt-get install -y --no-install-recommends python3-pip && \
-    pip3 install --no-cache-dir pod5 && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
-
 # link dorado to /usr/local/bin
 RUN ln -s /opt/dorado/bin/dorado /usr/local/bin/dorado
+
+# install Miniforge
+ENV MAMBA_DOCKERFILE_ACTIVATE=1
+RUN apt-get update && apt-get install -y --no-install-recommends wget bzip2 && \
+    wget --quiet https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh -O /tmp/miniforge.sh && \
+    bash /tmp/miniforge.sh -b -p /opt/conda && \
+    rm /tmp/miniforge.sh && \
+    ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
+    echo ". /opt/conda/etc/profile.d/conda.sh" >> /etc/bash.bashrc && \
+    echo "conda activate base" >> /etc/bash.bashrc && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+ENV PATH="/opt/conda/bin:$PATH"
+
+# copy the environment.yml file
+COPY environment.yml /tmp/environment.yml
+
+# crea l'environment conda (ad esempio chiamato "dorado-env")
+RUN conda env create -f /tmp/environment.yml && \
+    conda clean -afy
+
+# imposta l'environment come default all'avvio
+SHELL ["bash", "-c"]
+ENV CONDA_DEFAULT_ENV=dorado-env
+ENV PATH="/opt/conda/envs/dorado-env/bin:$PATH"
+RUN echo "conda activate dorado-env" >> /etc/bash.bashrc
 
 # setting default command
 CMD ["dorado", "--help"]
