@@ -14,12 +14,21 @@
 # This Dockerfile is based on the official NVIDIA CUDA image
 # https://hub.docker.com/r/nvidia/cuda
 ARG CUDA_VERSION=11.8.0
+ARG DORADO_VERSION=v0.9.6
 
 # start from the nvidia/cuda base image
 FROM nvidia/cuda:${CUDA_VERSION}-devel-ubuntu22.04 AS build
 
-# MAINTAINER is deprecated. Use LABEL instead
+# IMPORTANT!: without this redefinition, you can't use variables defined
+# before the first FROM statement
+ARG CUDA_VERSION
+ARG DORADO_VERSION
+
+# some metadata
 LABEL maintainer="paolo.cozzi@ibba.cnr.it"
+LABEL cuda.version="${CUDA_VERSION}"
+LABEL dorado.version="${DORADO_VERSION}"
+LABEL description="A docker image with dorado installed"
 
 # Set environment variable to disable interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
@@ -49,8 +58,7 @@ RUN python3 -m venv venv && \
 # Cloning dorado and choosing the v0.9.6 release
 RUN git clone https://github.com/nanoporetech/dorado.git /root/dorado && \
     cd /root/dorado && \
-    git checkout v0.9.6 && \
-    git submodule update --init --recursive
+    git checkout ${DORADO_VERSION}
 
 WORKDIR /root/dorado
 
@@ -65,10 +73,20 @@ RUN . /root/venv/bin/activate && \
     cmake --install cmake-build --prefix /opt/dorado
 
 # 2nd stage build
-FROM nvidia/cuda:${CUDA_VERSION}-runtime-ubuntu22.04
+###############################################################################
 
-# MAINTAINER is deprecated. Use LABEL instead
+FROM nvidia/cuda:${CUDA_VERSION}-base-ubuntu22.04
+
+# IMPORTANT!: without this redefinition, you can't use variables defined
+# before the first FROM statement
+ARG CUDA_VERSION
+ARG DORADO_VERSION
+
+# some metadata
 LABEL maintainer="paolo.cozzi@ibba.cnr.it"
+LABEL cuda.version="${CUDA_VERSION}"
+LABEL dorado.version="${DORADO_VERSION}"
+LABEL description="A docker image with dorado installed"
 
 # Set environment variable to disable interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
