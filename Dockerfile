@@ -1,11 +1,11 @@
 #
-# VERSION 0.2.1
+# VERSION 0.2.2
 # DOCKER-VERSION  28.1.1
 # AUTHOR:         Paolo Cozzi <paolo.cozzi@ibba.cnr.it>
 # DESCRIPTION:    A docker image with dorado installed
 # TO_BUILD:       docker build --rm --build-arg BUILD_JOBS=4 -t bunop/dorado .
 # TO_RUN:         docker run --rm --gpus all -ti bunop/dorado bash
-# TO_TAG:         docker tag bunop/dorado:latest bunop/dorado:v0.9.6-cuda11.8.0
+# TO_TAG:         docker tag bunop/dorado:latest bunop/dorado:v1.0.2-cuda12.8.0
 #
 
 # This is an attempt to dockerize dorado as described in:
@@ -13,8 +13,8 @@
 
 # This Dockerfile is based on the official NVIDIA CUDA image
 # https://hub.docker.com/r/nvidia/cuda
-ARG CUDA_VERSION=11.8.0
-ARG DORADO_VERSION=v0.9.6
+ARG CUDA_VERSION=12.8.0
+ARG DORADO_VERSION=v1.0.2
 
 # start from the nvidia/cuda base image
 FROM nvidia/cuda:${CUDA_VERSION}-devel-ubuntu22.04 AS build
@@ -55,7 +55,7 @@ RUN python3 -m venv venv && \
     pip install --upgrade pip && \
     pip install "cmake==3.25"
 
-# Cloning dorado and choosing the v0.9.6 release
+# Cloning dorado and choosing the v1.0.2 release
 RUN git clone https://github.com/nanoporetech/dorado.git /root/dorado && \
     cd /root/dorado && \
     git checkout ${DORADO_VERSION}
