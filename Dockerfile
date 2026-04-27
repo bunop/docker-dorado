@@ -49,11 +49,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /root
 
-# install cmake using pip and venv
+# install a recent cmake using pip and venv; CUDA 12.8 + dorado v1.4.0 needs
+# newer NVCC dialect support than the Ubuntu-packaged cmake provides.
 RUN python3 -m venv venv && \
     . venv/bin/activate && \
     pip install --upgrade pip && \
-    pip install "cmake==3.25"
+    pip install "cmake==3.31.6"
 
 # Cloning dorado and choosing the v1.4.0 release
 RUN git clone https://github.com/nanoporetech/dorado.git /root/dorado && \
