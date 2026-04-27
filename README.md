@@ -15,7 +15,9 @@ Built images are available on [Docker Hub](https://hub.docker.com/r/bunop/dorado
 | `bunop/dorado:v1.0.0-cuda12.8.0` | 12.8 | v1.0.0 |
 | `bunop/dorado:v1.0.2-cuda11.8.0` | 11.8 | v1.0.2 |
 | `bunop/dorado:v1.0.2-cuda12.8.0` | 12.8 | v1.0.2 |
-| `bunop/dorado:latest` | 12.8 | v1.0.2 |
+| `bunop/dorado:v1.4.0-cuda11.8.0` | 11.8 | v1.4.0 |
+| `bunop/dorado:v1.4.0-cuda12.8.0` | 12.8 | v1.4.0 |
+| `bunop/dorado:latest` | 12.8 | v1.4.0 |
 
 ## Pull image from Docker Hub
 
@@ -28,7 +30,7 @@ docker pull bunop/dorado:latest
 Or get a specific version with:
 
 ```bash
-docker pull bunop/dorado:v0.9.6-cuda11.8.0
+docker pull bunop/dorado:v1.4.0-cuda11.8.0
 ```
 
 ## Build image locally
@@ -44,11 +46,11 @@ Then enter into `docker-dorado` directory and build the image with:
 ```bash
 docker build --build-arg BUILD_JOBS=4 \
     --build-arg CUDA_VERSION=11.8.0 \
-    --build-arg DORADO_VERSION=v0.9.6 \
-    -t bunop/dorado:v0.9.6-cuda11.8.0 .
+    --build-arg DORADO_VERSION=v1.4.0 \
+    -t bunop/dorado:v1.4.0-cuda11.8.0 .
 ```
 
 Where `BUILD_JOBS` is the number of jobs to use for building the image,
 `CUDA_VERSION` is the CUDA version to use and `DORADO_VERSION` is the
 version of dorado to use. The default values are the *available number of cores*,
-`12.8.0` and `v1.0.2` respectively.
+`12.8.0` and `v1.4.0` respectively.
